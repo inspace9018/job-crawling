@@ -1,0 +1,9 @@
+{
+  "name": "job-crawling",
+  "private": true,
+  "type": "module",
+  "description": "맞춤 채용 공고 수집 (리멤버 로그인에 playwright 사용)",
+  "optionalDependencies": {
+    "playwright": "^1.52.0"
+  }
+}

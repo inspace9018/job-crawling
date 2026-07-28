@@ -1,0 +1,7 @@
+# 줄바꿈 통일 — 어느 PC에서 클론해도 동일하게 받아지도록 고정
+* text=auto
+# .cmd는 반드시 CRLF (LF면 한글 배치 파일이 깨짐)
+*.cmd text eol=crlf
+*.mjs text eol=lf
+*.json text eol=lf
+*.md text eol=lf

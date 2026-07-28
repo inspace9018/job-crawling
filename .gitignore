@@ -1,0 +1,9 @@
+node_modules/
+.env
+# 이 컴퓨터 전용 설정(개인 경로 포함) — 공유 금지
+.claude/settings.local.json
+# 실행 시 생성되는 데이터·결과물(코드가 아니므로 추적 제외)
+data/
+reports/
+*.log
+_bak.json

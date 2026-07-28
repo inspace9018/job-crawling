@@ -1,0 +1,20 @@
+{
+  "_README": "크레딧/사용량 장부. 모델 호출마다 추정 토큰(천 단위)×가중치를 weighted로 적립. 가중치 Haiku1/Sonnet3/Opus5/Fable10. 실제 기준은 Claude Code /usage. 스키마는 SPEC.md §2.",
+  "budget": null,
+  "budget_mode": "unlimited",
+  "_budget_note": "사용자가 '예산 상관없음' 선택(2026-06-21). 80%/100% 경고 없음. 단, 투명성 위해 사용량은 계속 기록한다.",
+  "unit": "추정 토큰(천 단위) × 모델 가중치",
+  "spent": 597,
+  "log": [
+    {"step": "부트스트랩: 규칙 숙지 + 목표 확장 + 계획 수립 + 파일 생성", "model": "opus", "tokens_k": 4, "weighted": 18},
+    {"step": "F001 프로필 정식 반영 + 예산 무제한 전환", "model": "opus", "tokens_k": 1.6, "weighted": 8},
+    {"step": "F002~F011 시스템 설계·구축·정찰·검증(사람인 수집/매칭/대시보드/알림)", "model": "opus", "tokens_k": 24, "weighted": 120},
+    {"step": "F003·F005 출처확장(원티드·링크드인) + OBSIDIAN 디자인 재설계 + 화면검증", "model": "opus", "tokens_k": 23, "weighted": 116},
+    {"step": "F005 대기업 타깃 + F012 피드백 학습(버튼·서버·점수) + 리멤버 판정·검증", "model": "opus", "tokens_k": 16, "weighted": 82},
+    {"step": "F018 해외 수집(링크드인 SG/US/EU) + 지역·언어 점수 + 대시보드 해외섹션·검증", "model": "opus", "tokens_k": 13, "weighted": 66},
+    {"step": "국내/해외 탭 분리 + 'product designer=UI/UX' 직무 구분 매칭(roleScore)·검증", "model": "opus", "tokens_k": 8.4, "weighted": 42},
+    {"step": "F019 직접/대행 판별 + F020 70점+ 회사 리서치(웹검색)·잡플래닛 패널 + 검증", "model": "opus", "tokens_k": 14, "weighted": 70},
+    {"step": "F021 디자인루키 수집 + F022 리멤버 API 정찰(브라우저 네트워크)·검증 후 보류", "model": "opus", "tokens_k": 15, "weighted": 75},
+    {"step": "자동 실행(find-jobs.mjs)·재생성(render-dashboard.mjs)·로컬서버 — Node 단독, 모델 미사용", "model": "none", "tokens_k": 0, "weighted": 0}
+  ]
+}

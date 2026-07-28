@@ -1,0 +1,190 @@
+{
+  "_README": "수집·키워드·점수 규칙(비개인). 본인 회사·연봉·이름 등은 .env 만 사용합니다.",
+  "preferences": [
+    "성과중심 문화",
+    "커리어 성장",
+    "주도·자율적으로 일할 수 있는 환경",
+    "가전·하드웨어 양산 디자인",
+    "근무 지역·재택 여부는 점수로 거르지 않음"
+  ],
+  "overseas": {
+    "_note": "enabled=false면 링크드인 해외 검색을 건너뜁니다.",
+    "enabled": true,
+    "priority": ["SG", "US", "EU"],
+    "language_pref": ["영어", "한국어"],
+    "region_bonus": { "SG": 6, "US": 4, "EU": 2, "KR": 0 }
+  },
+  "match_keywords": {
+    "_note": "이 블록이 '무슨 직무를 찾는지'를 결정합니다. 다른 직무(개발자·마케터 등)로 바꾸려면 이 블록 전체를 그 직무에 맞는 단어로 바꾸면 됩니다. src/match.mjs 코드에는 특정 직무를 편애하는 단어가 들어있지 않습니다.",
+    "_must_any_note": "제목·본문 중 아래 단어와 직무가 맞아야 점수가 오릅니다(제목 일치 +35, 본문 일치 +12).",
+    "must_any": [
+      "산업디자인",
+      "제품디자인",
+      "인더스트리얼",
+      "industrial design",
+      "가전 디자인",
+      "하드웨어 디자인"
+    ],
+    "_specialty_note": "세부 전문 분야(있으면 specialty_bonus 만큼 추가 가점). 전문 분야가 따로 없으면 빈 배열 []로 두세요.",
+    "specialty": [
+      "가전",
+      "생활가전",
+      "소형가전",
+      "주방가전",
+      "청소가전",
+      "로봇청소기",
+      "음식물처리기",
+      "정수기",
+      "공기청정기",
+      "가습기",
+      "안마의자",
+      "헬스케어가전"
+    ],
+    "specialty_bonus": 25,
+    "boost": [
+      "양산",
+      "CMF",
+      "신제품 개발",
+      "모빌리티",
+      "3D 모델링",
+      "라이노",
+      "키샷",
+      "Rhino",
+      "Keyshot",
+      "성과",
+      "R&D",
+      "시니어 디자이너"
+    ],
+    "down": [
+      "웹 디자인",
+      "퍼블리셔",
+      "영상편집",
+      "그래픽 전용",
+      "VMD",
+      "공간연출",
+      "신입 전용"
+    ]
+  },
+  "target_companies_hint": [
+    "삼성전자",
+    "LG전자",
+    "코웨이",
+    "SK매직",
+    "쿠쿠",
+    "위닉스",
+    "신일",
+    "청호나이스",
+    "발뮤다",
+    "샤오미",
+    "로보락",
+    "에코백스",
+    "휴롬",
+    "한경희",
+    "쿠쿠홈시스",
+    "교원",
+    "바디프랜드",
+    "현대자동차",
+    "LG이노텍",
+    "SK하이닉스"
+  ],
+  "collection": {
+    "_note": "100대 기업은 config/korea-top100-careers.json. SESSION_COOKIE_DAYS는 .env. 아래 각 포털의 keywords도 직무에 맞게 바꾸세요. designrookie·instagram_agencies는 디자인 직군 전용 채용원이라 다른 직무면 job_portals.designrookie.enabled=false / instagram_agencies.enabled=false 로 꺼두세요.",
+    "score_floor": 40,
+    "use_top100_companies": true,
+    "companies_file": "config/korea-top100-companies.json",
+    "companies_careers_file": "config/korea-top100-careers.json",
+    "company_search_max": 100,
+    "job_portals": {
+      "enabled": true,
+      "jobkorea": { "pages_per_keyword": 1 },
+      "incruit": { "pages_per_keyword": 1 },
+      "jobplanet": {
+        "keywords": ["산업디자인", "제품디자인", "product designer", "디자인"],
+        "pages": 1
+      },
+      "worknet": { "pages_per_keyword": 1 },
+      "jumpit": { "keywords": ["디자인", "product designer", "design", "UI"] },
+      "remember": {
+        "keywords": ["산업디자인", "제품디자인", "디자인", "product designer", "CMF"]
+      }
+    },
+    "saramin": {
+      "keywords": [
+        "산업디자인",
+        "제품디자인",
+        "가전디자인",
+        "인더스트리얼",
+        "하드웨어 디자인",
+        "CMF 디자인"
+      ],
+      "pages_per_keyword": 2,
+      "company_names": [],
+      "company_pages": 1,
+      "detail_top_n": 60
+    },
+    "wanted": {
+      "keywords": [
+        "프로덕트 디자이너",
+        "product designer",
+        "산업 디자인",
+        "industrial designer",
+        "가전",
+        "하드웨어 디자이너",
+        "CMF"
+      ],
+      "limit_per_keyword": 40
+    },
+    "linkedin_kr": {
+      "keywords": [
+        "산업디자인",
+        "제품디자인",
+        "industrial designer",
+        "product designer",
+        "가전 디자인",
+        "hardware designer"
+      ],
+      "pages_per_keyword": 1,
+      "location": "South Korea"
+    },
+    "linkedin_overseas": {
+      "keywords": ["industrial designer", "product designer", "hardware designer"],
+      "pages_per_keyword": 1,
+      "locations": [
+        { "location": "Singapore", "region": "SG" },
+        { "location": "United States", "region": "US" },
+        { "location": "United Kingdom", "region": "EU" },
+        { "location": "Germany", "region": "EU" }
+      ]
+    },
+    "designrookie": {
+      "pages_all": 5,
+      "pages_product_field": 3,
+      "limit_per_page": 20,
+      "product_job_fields": ["산업(제품)디자인"]
+    },
+    "instagram_agencies": {
+      "enabled": true,
+      "config_file": "config/design-agencies-instagram.json",
+      "domestic_only": true,
+      "max_posts_per_account": 12,
+      "auth_path": "data/instagram-auth.json"
+    },
+    "corporate_careers": {
+      "enabled": true,
+      "workday": [],
+      "greenhouse": [],
+      "lever": [],
+      "google_site_search": {
+        "_note": "API 키·cx는 .env 의 GOOGLE_CSE_*",
+        "label": "Google 사이트검색",
+        "queries": [
+          "site:careers.lg.com 산업디자인 OR 제품디자인",
+          "site:recruit.coway.co.kr 디자인",
+          "site:careers.samsung.com 디자인",
+          "site:wd3.myworkdayjobs.com Samsung design"
+        ],
+        "num_results": 10
+      }
+    }
+  }
+}

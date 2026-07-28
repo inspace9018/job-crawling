@@ -1,0 +1,25 @@
+{
+  "_README": "루프 사용량 게이트 설정. 각 창은 budget>0 일 때만 켜지고, 켜진 창이 '남은 시간 대비 페이스선'보다 margin% 이상 적게 썼을 때만 GO. 기본은 Claude의 실제 하드 한도인 5시간·주간을 사용한다. 아래 budget 값은 ccusage 실제 기록의 '관찰 최대치' 기반 추천이며 취향대로 조정 가능.",
+  "metric": "cost",
+  "_metric_options": "cost = ccusage 비용($, 권장) / tokens = 총토큰(캐시읽기 포함) / tokens_billable = 입력+출력+캐시생성",
+  "margin_percent": 10,
+  "_margin_note": "'페이스보다 10% 이상 적게 썼을 때만' 가동. 즉 사용량 <= 페이스선 x 0.9 일 때 GO.",
+
+  "session_5h": {
+    "budget": 218,
+    "_basis": "관찰된 5시간 블록 최대 비용($217.68) 기반. 5시간 제한은 실제 하드캡이라 켜두면 단기 차단을 예방. `npx ccusage@latest blocks` 로 재관찰 가능. 0이면 끔.",
+    "_note": "더 보수적으로 돌리려면 값을 낮추고(예: 180), 더 공격적으로면 높인다."
+  },
+  "weekly": {
+    "budget": 796,
+    "reset_weekday": 1,
+    "reset_hour": 0,
+    "_basis": "관찰된 7일 연속 최대 합($795.54) 기반. reset_weekday: 0=일~6=토(기본 1=월), reset_hour: 현지 0~23 — /usage 의 실제 주간 초기화 시점에 맞춰 조정. 0이면 끔.",
+    "_note": "실제 주간 한도에 맞게 조정. 모르면 며칠 `npx ccusage@latest daily` 로 관찰."
+  },
+  "monthly": {
+    "budget": 0,
+    "reset_day": 1,
+    "_how_to_set": "(선택) 월 자율 페이싱이 필요할 때만 budget>0. reset_day = 구독 갱신일(1~28 권장). 기본은 끔(0)."
+  }
+}
