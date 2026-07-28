@@ -105,7 +105,22 @@
       "worknet": { "pages_per_keyword": 1 },
       "jumpit": { "keywords": ["디자인", "product designer", "design", "UI"] },
       "remember": {
-        "keywords": ["산업디자인", "제품디자인", "디자인", "product designer", "CMF"]
+        "_note": "리멤버는 요청이 몰리면 3분 넘게 막히므로(429) 키워드를 무한정 늘릴 수 없습니다. 성과가 좋았던 순서로 두세요 — 제한에 걸리면 앞쪽 키워드까지만 수집됩니다. 'CMF'는 결과가 0건이라 뺐습니다.",
+        "keywords": [
+          "생활가전",
+          "소형가전",
+          "가전제품",
+          "가전디자인",
+          "제품디자인",
+          "산업디자인",
+          "인더스트리얼디자인",
+          "하드웨어디자인",
+          "구조설계",
+          "industrial design",
+          "product designer",
+          "디자인"
+        ],
+        "pages": 2
       }
     },
     "saramin": {

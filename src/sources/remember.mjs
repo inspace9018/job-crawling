@@ -116,9 +116,24 @@ async function fetchJsonWithCookies(url, cookie, { method = "GET", body } = {}) 
     headers: body ? { ...headers, "Content-Type": "application/json" } : headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 429) {
+    const err = new Error("HTTP 429");
+    err.rateLimited = true;
+    err.retryAfter = Number(res.headers.get("retry-after")) || null;
+    throw err;
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
+
+/**
+ * 리멤버는 짧은 시간에 요청이 몰리면 429로 막고 3분 넘게(Retry-After 200초대) 안 풀어 준다.
+ * 요청 간 간격을 두고, 한 번 막히면 짧게만 기다렸다가 그래도 막히면 그 회차 수집을 접는다.
+ * (수집 전체를 몇 분씩 세우는 것보다, 지금까지 모은 것을 살리고 넘어가는 편이 낫다.)
+ */
+const REQUEST_GAP_MS = 900;
+const MAX_WAIT_ON_LIMIT_MS = 45000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * 리멤버 검색 API 본문. 검색어는 반드시 search.keywords 배열에 넣어야 한다.
@@ -142,17 +157,35 @@ function searchBody(keyword, page, per) {
 
 const PER_PAGE = 30;
 
+/** 한 번 요청. 429면 Retry-After 가 짧을 때만 한 번 더 기다렸다 재시도한다. */
+async function searchOnce(cookie, keyword, page) {
+  try {
+    return await fetchJsonWithCookies(`${API_HOST}/job_postings/search`, cookie, {
+      method: "POST",
+      body: searchBody(keyword, page, PER_PAGE),
+    });
+  } catch (e) {
+    if (!e.rateLimited) throw e;
+    const waitMs = (e.retryAfter ?? 30) * 1000;
+    if (waitMs > MAX_WAIT_ON_LIMIT_MS) throw e;
+    console.log(`  [remember] 요청 제한 — ${Math.round(waitMs / 1000)}초 기다렸다 재시도`);
+    await sleep(waitMs);
+    return fetchJsonWithCookies(`${API_HOST}/job_postings/search`, cookie, {
+      method: "POST",
+      body: searchBody(keyword, page, PER_PAGE),
+    });
+  }
+}
+
 async function tryFetchKeyword(cookie, keyword, pages = 2) {
   const out = [];
   const seen = new Set();
   for (let page = 1; page <= pages; page++) {
     let data;
     try {
-      data = await fetchJsonWithCookies(`${API_HOST}/job_postings/search`, cookie, {
-        method: "POST",
-        body: searchBody(keyword, page, PER_PAGE),
-      });
+      data = await searchOnce(cookie, keyword, page);
     } catch (e) {
+      if (e.rateLimited) throw e;
       if (page === 1) throw e;
       break;
     }
@@ -274,7 +307,9 @@ export async function fetchRemember(
 
   const all = [];
   const seen = new Set();
+  let done = 0;
   for (const kw of keywords) {
+    if (done > 0) await sleep(REQUEST_GAP_MS);
     try {
       const items = await tryFetchKeyword(cookie, kw, pages);
       for (const j of items) {
@@ -283,7 +318,14 @@ export async function fetchRemember(
           all.push(j);
         }
       }
+      done++;
     } catch (e) {
+      if (e.rateLimited) {
+        console.log(
+          `  [remember] 요청 제한에 걸려 ${done}/${keywords.length}개 키워드까지만 수집합니다(다음 실행 때 이어서 나옵니다).`
+        );
+        break;
+      }
       console.error(`  [remember] API ${kw}: ${e.message}`);
     }
   }
