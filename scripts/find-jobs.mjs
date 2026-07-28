@@ -26,7 +26,9 @@ const DEFAULT_COLLECTION = {
   use_top100_companies: true,
   companies_file: "config/korea-top100-companies.json",
   companies_careers_file: "config/korea-top100-careers.json",
-  company_search_max: 100,
+  extra_companies_files: ["config/korea-unicorn50-companies.json"],
+  extra_careers_files: ["config/korea-unicorn50-careers.json"],
+  company_search_max: 150,
   job_portals: { enabled: true },
   saramin: { pages_per_keyword: 2, company_pages: 1, detail_top_n: 60 },
   wanted: { limit_per_keyword: 40 },
@@ -50,6 +52,8 @@ function collectionFrom(profile) {
     use_top100_companies: c.use_top100_companies ?? DEFAULT_COLLECTION.use_top100_companies,
     companies_file: c.companies_file ?? DEFAULT_COLLECTION.companies_file,
     companies_careers_file: c.companies_careers_file ?? DEFAULT_COLLECTION.companies_careers_file,
+    extra_companies_files: c.extra_companies_files ?? DEFAULT_COLLECTION.extra_companies_files,
+    extra_careers_files: c.extra_careers_files ?? DEFAULT_COLLECTION.extra_careers_files,
     company_search_max: c.company_search_max ?? DEFAULT_COLLECTION.company_search_max,
     job_portals: { ...DEFAULT_COLLECTION.job_portals, ...c.job_portals },
     saramin: { ...DEFAULT_COLLECTION.saramin, ...c.saramin },
@@ -102,7 +106,14 @@ async function main() {
   console.log("");
 
   const top100 = await readJson(col.companies_file, { companies: [] });
-  const companies = resolveCompanyList(profile, col, top100).slice(0, col.company_search_max ?? 100);
+  const extraCompanyFiles = [];
+  for (const f of col.extra_companies_files || []) {
+    extraCompanyFiles.push(await readJson(f, { companies: [] }));
+  }
+  const companies = resolveCompanyList(profile, col, top100, extraCompanyFiles).slice(
+    0,
+    col.company_search_max ?? 150
+  );
   const keywords = resolveSearchKeywords(profile, col);
 
   const portalNames = JOB_PORTALS.map((p) => p.name).join(" · ");

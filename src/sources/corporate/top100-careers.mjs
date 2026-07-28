@@ -12,11 +12,18 @@ function normName(name) {
   return String(name || "").replace(/\s/g, "");
 }
 
-export function buildCareersRegistry(careersFile, profileCorporate = {}) {
+/** @param {object[]} extraFiles 추가 채용페이지 목록(유니콘 50 등) */
+export function buildCareersRegistry(careersFile, profileCorporate = {}, extraFiles = []) {
   const byName = new Map();
   for (const e of careersFile.entries || []) {
     if (!e?.name) continue;
     byName.set(normName(e.name), e);
+  }
+  for (const f of extraFiles) {
+    for (const e of f?.entries || []) {
+      if (!e?.name) continue;
+      byName.set(normName(e.name), e);
+    }
   }
   for (const w of profileCorporate.workday || []) {
     if (!w?.company) continue;
@@ -32,7 +39,9 @@ export function buildCareersRegistry(careersFile, profileCorporate = {}) {
 function designKeywords(profile, col) {
   const mk = profile?.match_keywords?.must_any || [];
   const sar = col?.saramin?.keywords || [];
-  return [...new Set([...mk, ...sar, "디자인", "design", "product designer", "산업디자인"])];
+  // '디자이너'는 '디자인'을 부분문자열로 포함하지 않는다(디자이+너 vs 디자+인).
+  // 둘 다 넣지 않으면 "제품 디자이너" 같은 제목이 통째로 걸러진다.
+  return [...new Set([...mk, ...sar, "디자인", "디자이너", "design", "designer", "산업디자인"])];
 }
 
 async function fetchOneEntry(entry, { keywords }) {
@@ -50,11 +59,15 @@ async function fetchOneEntry(entry, { keywords }) {
 export async function fetchTop100CorporateCareers(companies, col, profile = {}) {
   const registryPath = col.companies_careers_file || DEFAULT_REGISTRY;
   const careersFile = await readJson(registryPath, { entries: [] });
-  const registry = buildCareersRegistry(careersFile, col.corporate_careers || {});
+  const extraCareers = [];
+  for (const f of col.extra_careers_files || []) {
+    extraCareers.push(await readJson(f, { entries: [] }));
+  }
+  const registry = buildCareersRegistry(careersFile, col.corporate_careers || {}, extraCareers);
   const keywords = designKeywords(profile, col);
   const list = companies.slice(0, col.company_search_max ?? companies.length);
 
-  console.log(`■ 100대 기업 공식 채용 홈페이지 (${list.length}곳 — 사람인/잡코리아/인크루트 회사 검색 안 함)`);
+  console.log(`■ 대기업·유니콘 공식 채용 홈페이지 (${list.length}곳 — 사람인/잡코리아/인크루트 회사 검색 안 함)`);
 
   const all = [];
   let total = 0;

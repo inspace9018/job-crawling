@@ -182,12 +182,14 @@ export function resolveSearchKeywords(profile, col) {
   return [...new Set([...sar, ...mk])];
 }
 
-export function resolveCompanyList(profile, col, top100File) {
+/** @param {object[]} extraFiles 100대 기업 외 추가 목록(유니콘 50 등) */
+export function resolveCompanyList(profile, col, top100File, extraFiles = []) {
   const fromFile = top100File?.companies || [];
+  const fromExtra = extraFiles.flatMap((f) => f?.companies || []);
   const extra = col.saramin?.company_names || [];
   const hints = profile.target_companies_hint || [];
   const useTop = col.use_top100_companies !== false;
-  const merged = useTop ? [...fromFile, ...extra, ...hints] : [...extra, ...hints];
+  const merged = useTop ? [...fromFile, ...fromExtra, ...extra, ...hints] : [...extra, ...hints];
   const seen = new Set();
   const out = [];
   for (const name of merged) {

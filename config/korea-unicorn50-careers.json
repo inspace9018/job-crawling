@@ -1,0 +1,278 @@
+{
+  "_README": "유니콘·주요 스타트업 50곳 공식 채용 페이지. 접속 확인: node scripts/verify-career-urls.mjs config/korea-unicorn50-careers.json",
+  "_source": "각社 공식 사이트에서 채용 링크를 직접 찾아 확인 (2026-07)",
+  "_note": "*.recruit.roundhr.com 은 없는 회사 이름에도 200을 돌려주는 가짜 응답이므로 쓰지 않았습니다. 주소를 새로 넣을 때는 반드시 페이지 내용까지 확인하세요.",
+  "entries": [
+    {
+      "name": "비바리퍼블리카",
+      "platform": "web",
+      "url": "https://toss.im/career/jobs"
+    },
+    {
+      "name": "당근",
+      "platform": "web",
+      "url": "https://about.daangn.com/jobs/"
+    },
+    {
+      "name": "우아한형제들",
+      "platform": "web",
+      "url": "https://career.woowahan.com/"
+    },
+    {
+      "name": "야놀자",
+      "platform": "web",
+      "url": "https://careers.yanolja.co/"
+    },
+    {
+      "name": "무신사",
+      "platform": "web",
+      "url": "https://www.musinsacareers.com/home"
+    },
+    {
+      "name": "컬리",
+      "platform": "web",
+      "url": "https://kurly.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "두나무",
+      "platform": "web",
+      "url": "https://www.dunamu.com/careers/jobs"
+    },
+    {
+      "name": "직방",
+      "platform": "web",
+      "url": "https://career.zigbang.com/"
+    },
+    {
+      "name": "버킷플레이스",
+      "platform": "web",
+      "url": "https://www.bucketplace.com/careers/"
+    },
+    {
+      "name": "하이퍼커넥트",
+      "platform": "web",
+      "url": "https://career.hyperconnect.com/"
+    },
+    {
+      "name": "크림",
+      "platform": "web",
+      "url": "https://recruit.kreamcorp.com/"
+    },
+    {
+      "name": "힐링페이퍼",
+      "platform": "web",
+      "url": "https://career.gangnamunni.com/"
+    },
+    {
+      "name": "왓챠",
+      "platform": "web",
+      "url": "https://watcha.team/"
+    },
+    {
+      "name": "뤼이드",
+      "platform": "web",
+      "url": "https://socraai.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "센드버드",
+      "platform": "web",
+      "url": "https://sendbird.com/careers"
+    },
+    {
+      "name": "몰로코",
+      "platform": "web",
+      "url": "https://www.moloco.com/careers"
+    },
+    {
+      "name": "메가존클라우드",
+      "platform": "web",
+      "url": "https://career.megazone.com/"
+    },
+    {
+      "name": "카카오모빌리티",
+      "platform": "web",
+      "url": "https://kakaomobility.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "티맵모빌리티",
+      "platform": "web",
+      "url": "https://www.skcareers.com/Recruit/Index"
+    },
+    {
+      "name": "원티드랩",
+      "platform": "web",
+      "url": "https://blog.wantedlab.com/recruit/"
+    },
+    {
+      "name": "채널코퍼레이션",
+      "platform": "web",
+      "url": "https://channel.io/kr/careers"
+    },
+    {
+      "name": "패스트파이브",
+      "platform": "web",
+      "url": "https://fastfive.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "루닛",
+      "platform": "web",
+      "url": "https://www.lunit.io/en/careers/"
+    },
+    {
+      "name": "뷰노",
+      "platform": "web",
+      "url": "https://www.vuno.co/career"
+    },
+    {
+      "name": "에이피알",
+      "platform": "web",
+      "url": "https://www.aprbeauty.com/formulation-section/careers"
+    },
+    {
+      "name": "리벨리온",
+      "platform": "web",
+      "url": "https://rebellions.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "퓨리오사AI",
+      "platform": "web",
+      "url": "https://furiosa.ai/careers"
+    },
+    {
+      "name": "매스프레소",
+      "platform": "web",
+      "url": "https://recruit.mathpresso.com/"
+    },
+    {
+      "name": "스캐터랩",
+      "platform": "web",
+      "url": "https://scatterlab.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "업스테이지",
+      "platform": "web",
+      "url": "https://upstage.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "슈퍼브에이아이",
+      "platform": "web",
+      "url": "https://www.superb-ai.com/careers"
+    },
+    {
+      "name": "마이리얼트립",
+      "platform": "web",
+      "url": "https://myrealtrip.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "트릿지",
+      "platform": "web",
+      "url": "https://careers.tridge.com/"
+    },
+    {
+      "name": "알스퀘어",
+      "platform": "web",
+      "url": "https://rsquare.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "아이지에이웍스",
+      "platform": "web",
+      "url": "https://igaworks.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "버즈빌",
+      "platform": "web",
+      "url": "https://buzzvil.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "자비스앤빌런즈",
+      "platform": "web",
+      "url": "https://team.3o3.co.kr/jobs/"
+    },
+    {
+      "name": "딜라이트룸",
+      "platform": "web",
+      "url": "https://delightroom.com/recruit"
+    },
+    {
+      "name": "와드",
+      "platform": "web",
+      "url": "https://catchtable.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "스포카",
+      "platform": "web",
+      "url": "https://spoqa.co.kr/careers/"
+    },
+    {
+      "name": "파두",
+      "platform": "web",
+      "url": "https://careers.fadu.io/"
+    },
+    {
+      "name": "딥엑스",
+      "platform": "web",
+      "url": "https://deepx.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "미트박스글로벌",
+      "platform": "web",
+      "url": "https://meatbox.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "더핑크퐁컴퍼니",
+      "platform": "web",
+      "url": "https://thepinkfongcompany.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "뤼튼테크놀로지스",
+      "platform": "web",
+      "url": "https://wrtn.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "백패커",
+      "platform": "web",
+      "url": "https://idus.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "두들린",
+      "platform": "web",
+      "url": "https://doodlin.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "룰루랩",
+      "platform": "web",
+      "url": "https://lululab.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "티오더",
+      "platform": "web",
+      "url": "https://torder.career.greetinghr.com/ko/career",
+      "render": true
+    },
+    {
+      "name": "피알앤디컴퍼니",
+      "platform": "web",
+      "url": "https://prnd.career.greetinghr.com/ko/career",
+      "render": true
+    }
+  ]
+}

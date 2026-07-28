@@ -142,7 +142,10 @@
     "use_top100_companies": true,
     "companies_file": "config/korea-top100-companies.json",
     "companies_careers_file": "config/korea-top100-careers.json",
-    "company_search_max": 100,
+    "_extra_files_note": "100대 기업에 더해 함께 볼 목록. 빼고 싶으면 아래 두 줄을 빈 배열 []로 두세요.",
+    "extra_companies_files": ["config/korea-unicorn50-companies.json"],
+    "extra_careers_files": ["config/korea-unicorn50-careers.json"],
+    "company_search_max": 150,
     "job_portals": {
       "enabled": true,
       "jobkorea": { "pages_per_keyword": 1 },

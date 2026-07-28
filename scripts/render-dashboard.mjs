@@ -8,7 +8,14 @@ import { resolveCompanyList, dashboardAlwaysShowSources } from "../src/sources/p
 const profile = await loadProfile();
 const col = profile.collection || {};
 const top100 = await readJson(col.companies_file || "config/korea-top100-companies.json", { companies: [] });
-const companies = resolveCompanyList(profile, col, top100).slice(0, col.company_search_max ?? 100);
+const extraCompanyFiles = [];
+for (const f of col.extra_companies_files || ["config/korea-unicorn50-companies.json"]) {
+  extraCompanyFiles.push(await readJson(f, { companies: [] }));
+}
+const companies = resolveCompanyList(profile, col, top100, extraCompanyFiles).slice(
+  0,
+  col.company_search_max ?? 150
+);
 
 const d = await readJson("data/jobs_latest.json", { jobs: [] });
 const ranked = d.jobs || [];
