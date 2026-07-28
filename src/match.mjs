@@ -10,11 +10,43 @@ const found = (text, list) => list.filter((k) => text.includes(k.toLowerCase()))
 const any = (text, list) => list.some((k) => text.includes(k.toLowerCase()));
 
 // 직무 적합 점수 — config의 match_keywords.must_any 에 제목이 걸리면 강하게, 본문에만 있으면 약하게.
-function roleScore(title, hay, mustAny) {
-  if (!mustAny.length) return { p: 0, why: null };
-  if (any(title, mustAny)) return { p: 35, why: "직무 키워드 일치(제목)" };
-  if (any(hay, mustAny)) return { p: 12, why: "직무 키워드 일치(본문)" };
-  return { p: 0, why: null };
+//
+// ambiguous_roles: 같은 이름이 전혀 다른 직무를 가리키는 단어(예: '프로덕트 디자이너'는
+// 산업디자인일 수도, 소프트웨어 UI/UX일 수도 있다). 이런 제목은 그것만으로 일치로 치지 않고,
+// context_positive(내 분야 신호)가 함께 있을 때만 일치로 인정하고 context_negative 가 있으면 배제한다.
+// 어느 직무를 찾든 config만 바꿔 쓸 수 있도록 이 파일에는 특정 직무 단어를 넣지 않는다.
+function roleScore(title, hay, mk) {
+  const mustAny = mk.must_any || [];
+  const ambiguous = mk.ambiguous_roles || [];
+  const ctxPos = mk.context_positive || [];
+  const ctxNeg = mk.context_negative || [];
+
+  if (any(title, mustAny)) {
+    if (ctxNeg.length && any(hay, ctxNeg) && !(ctxPos.length && any(hay, ctxPos))) {
+      return { p: 6, why: "직무 키워드는 맞지만 다른 분야 성격(제외 신호)", matched: false };
+    }
+    return { p: 35, why: "직무 키워드 일치(제목)", matched: true };
+  }
+
+  if (ambiguous.length && any(title, ambiguous)) {
+    if (ctxPos.length && any(hay, ctxPos)) {
+      return { p: 32, why: "직무 일치(내 분야 신호 확인)", matched: true };
+    }
+    if (ctxNeg.length && any(hay, ctxNeg)) {
+      return { p: -6, why: "이름은 비슷하나 다른 분야 직무", matched: false };
+    }
+    return { p: 8, why: "직무가 모호함(분야 신호 없음)", matched: false };
+  }
+
+  // 본문에만 걸린 경우는 근거가 약하다. 상세 설명에 '제품 디자인' 한 줄만 스쳐도 걸리기 때문에,
+  // 내 분야 신호(양산·금형·CMF 등)가 함께 있을 때만 직무 일치로 인정한다.
+  if (mustAny.length && any(hay, mustAny)) {
+    const posOk = ctxPos.length ? any(hay, ctxPos) : true;
+    const negBad = ctxNeg.length ? any(hay, ctxNeg) : false;
+    if (posOk && !negBad) return { p: 12, why: "직무 키워드 일치(본문)", matched: true };
+    return { p: 4, why: "본문에만 언급(직무 확실치 않음)", matched: false };
+  }
+  return { p: 0, why: null, matched: false };
 }
 
 // 경력 적합도(3년차 중급): 0~18
@@ -74,9 +106,10 @@ export function scoreJob(job, profile) {
   const reasons = [];
 
   // 1) 직무 일치 — config의 match_keywords.must_any 기준
-  const role = roleScore(title, hay, mk.must_any || []);
+  const role = roleScore(title, hay, mk);
   score += role.p;
   if (role.why) reasons.push(role.why);
+  const roleMatched = role.matched;
 
   // 2) 전문 분야 특화 — config의 match_keywords.specialty(+specialty_bonus)에서 읽음. 미설정 시 가점 없음.
   const specialtyKw = mk.specialty || [];
@@ -157,13 +190,18 @@ export function scoreJob(job, profile) {
   }
 
   score = Math.max(0, Math.min(100, Math.round(score)));
-  return { ...job, score, reasons, is_self: false };
+  return { ...job, score, reasons, is_self: false, role_matched: roleMatched };
 }
 
 // 점수화 + 정렬(높은순). floor 미만 제외.
+// require_role_match(기본 켜짐)이면 직무 키워드(must_any)에 걸리지 않은 공고는 점수와 무관하게 제외한다.
+// 이게 없으면 "가전 MD·영업"처럼 분야만 겹치고 직무는 다른 공고가 전문분야 가점만으로 올라온다.
 export function rankJobs(jobs, profile, { floor = 35 } = {}) {
+  const mk = profile.match_keywords || {};
+  const requireRole = mk.require_role_match !== false && (mk.must_any || []).length > 0;
   return jobs
     .map((j) => scoreJob(j, profile))
     .filter((j) => !j.is_self && j.score >= floor)
+    .filter((j) => !requireRole || j.role_matched)
     .sort((a, b) => b.score - a.score);
 }
