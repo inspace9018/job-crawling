@@ -120,33 +120,52 @@ async function fetchJsonWithCookies(url, cookie, { method = "GET", body } = {}) 
   return res.json();
 }
 
-async function tryFetchKeyword(cookie, keyword) {
-  const searchBody = { keyword, query: keyword, searchText: keyword, q: keyword, page: 1, per: 30 };
-  const attempts = [
-    () =>
-      fetchJsonWithCookies(`${API_HOST}/job_postings/search`, cookie, {
-        method: "POST",
-        body: searchBody,
-      }),
-    () => fetchJsonWithCookies(`${API_HOST}/job_postings?keyword=${encodeURIComponent(keyword)}&page=1&per=30`, cookie),
-    () => fetchJsonWithCookies(`${API_HOST}/job_postings?search=${encodeURIComponent(keyword)}&page=1&per=30`, cookie),
-    () => fetchJsonWithCookies(`${API_HOST}/job_postings?q=${encodeURIComponent(keyword)}&page=1&per=30`, cookie),
-    () =>
-      fetchJsonWithCookies(`${API_HOST}/v1/job_postings/search`, cookie, {
-        method: "POST",
-        body: { keyword, page: 1, size: 30 },
-      }),
-  ];
-  for (const fn of attempts) {
+/**
+ * 리멤버 검색 API 본문. 검색어는 반드시 search.keywords 배열에 넣어야 한다.
+ * 최상위 keyword/q/search 파라미터는 무시되고 개인화 추천 피드가 그대로 돌아온다.
+ */
+function searchBody(keyword, page, per) {
+  return {
+    search: {
+      include_applied_job_posting: false,
+      leader_position: false,
+      organization_type: "all",
+      application_type: "all",
+      keywords: [keyword],
+    },
+    sort: "recommended",
+    page,
+    per,
+    new_function_score: true,
+  };
+}
+
+const PER_PAGE = 30;
+
+async function tryFetchKeyword(cookie, keyword, pages = 2) {
+  const out = [];
+  const seen = new Set();
+  for (let page = 1; page <= pages; page++) {
+    let data;
     try {
-      const data = await fn();
-      const jobs = normalizeList(data).map((j) => ({ ...j, keyword }));
-      if (jobs.length) return jobs;
-    } catch {
-      /* next */
+      data = await fetchJsonWithCookies(`${API_HOST}/job_postings/search`, cookie, {
+        method: "POST",
+        body: searchBody(keyword, page, PER_PAGE),
+      });
+    } catch (e) {
+      if (page === 1) throw e;
+      break;
     }
+    const jobs = normalizeList(data).map((j) => ({ ...j, keyword }));
+    for (const j of jobs) {
+      if (!seen.has(j.id)) {
+        seen.add(j.id);
+        out.push(j);
+      }
+    }
+    if (jobs.length < PER_PAGE) break;
   }
-  return [];
+  return out;
 }
 
 async function fetchViaPlaywright(authPath, keywords) {
@@ -184,7 +203,17 @@ async function fetchViaPlaywright(authPath, keywords) {
     });
 
     for (const kw of keywords) {
-      const searchUrl = `${CAREER_ORIGIN}/job/postings?keyword=${encodeURIComponent(kw)}`;
+      // 사이트가 실제로 쓰는 형식: ?search={"keywords":["..."]} — ?keyword= 는 무시된다
+      const searchParam = encodeURIComponent(
+        JSON.stringify({
+          includeAppliedJobPosting: false,
+          leaderPosition: false,
+          organizationType: "all",
+          applicationType: "all",
+          keywords: [kw],
+        })
+      );
+      const searchUrl = `${CAREER_ORIGIN}/job/postings?search=${searchParam}`;
       try {
         await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
         await page.waitForTimeout(2500);
@@ -229,7 +258,7 @@ async function fetchViaPlaywright(authPath, keywords) {
 
 export async function fetchRemember(
   keywords = ["디자인", "산업디자인", "제품디자인"],
-  { authPath = DEFAULT_AUTH_PATH } = {}
+  { authPath = DEFAULT_AUTH_PATH, pages = 2 } = {}
 ) {
   const auth = await loadRememberAuth(authPath);
   if (!auth) {
@@ -247,7 +276,7 @@ export async function fetchRemember(
   const seen = new Set();
   for (const kw of keywords) {
     try {
-      const items = await tryFetchKeyword(cookie, kw);
+      const items = await tryFetchKeyword(cookie, kw, pages);
       for (const j of items) {
         if (!seen.has(j.id)) {
           seen.add(j.id);

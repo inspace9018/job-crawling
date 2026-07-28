@@ -132,7 +132,7 @@ export async function fetchPortalKeywords(profile, col, keywords) {
   if (portalOn(col, "remember")) {
     const kws =
       pcfg.remember?.keywords || ["산업디자인", "제품디자인", "디자인", "product designer"];
-    all.push(...(await fetchRemember(kws)));
+    all.push(...(await fetchRemember(kws, { pages: pcfg.remember?.pages ?? 2 })));
   }
 
   if (portalOn(col, "jumpit")) {
