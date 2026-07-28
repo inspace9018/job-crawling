@@ -63,7 +63,13 @@ createServer(async (req, res) => {
       return res.end("forbidden");
     }
     const data = await readFile(fp);
-    res.writeHead(200, { "Content-Type": TYPES[extname(fp)] || "application/octet-stream" });
+    // 캐시 금지 — 공고를 새로 찾은 뒤에도 브라우저가 옛 대시보드를 그대로 띄우는 일을 막는다
+    res.writeHead(200, {
+      "Content-Type": TYPES[extname(fp)] || "application/octet-stream",
+      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
     res.end(data);
   } catch {
     res.writeHead(404);

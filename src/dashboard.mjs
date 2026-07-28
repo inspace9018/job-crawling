@@ -1,7 +1,7 @@
 // 대시보드(HTML) + 일일 요약(MD) 생성 — OBSIDIAN(Tactical Monochrome) 디자인 시스템 준수(design.md).
 // 무채색 베이스 · 손익색(녹/적/앰버)만 · 그림자 금지 · 코너 브라켓 · 고밀도 · mono 숫자.
 import { writeFile } from "node:fs/promises";
-import { today, readJson } from "./util.mjs";
+import { today, nowHM, readJson } from "./util.mjs";
 import { detectHiringType, jobplanetUrl, googleUrl, companyBlurb, normCo } from "./company.mjs";
 
 const esc = (s = "") =>
@@ -447,7 +447,7 @@ ${srcFilter}
   <div class="jrow filt-empty" id="ovs-empty" aria-live="polite"><div class="jmain"></div></div>
   </div>
 </div>
-<footer>국내 ${allDomestic.length}건 · 해외 ${allOverseas.length}건 · 총 ${ranked.length}건 · ${esc(today())} 생성 · 관심/제외는 다음 공고 찾기부터 점수에 반영됩니다</footer>
+<footer>국내 ${allDomestic.length}건 · 해외 ${allOverseas.length}건 · 총 ${ranked.length}건 · <b>${esc(today())} ${esc(nowHM())} 생성</b> · 관심/제외는 다음 공고 찾기부터 점수에 반영됩니다<br><span class="mut">화면이 예전 것 같으면 이 시각을 확인하고 브라우저에서 새로고침(Ctrl+F5) 하세요.</span></footer>
 </main>
 <script>
 function jobRows(panelId){

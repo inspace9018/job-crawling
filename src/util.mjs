@@ -50,4 +50,7 @@ export async function writeJson(path, obj) {
   await writeFile(path, JSON.stringify(obj, null, 2), "utf8");
 }
 export const today = () => new Date().toISOString().slice(0, 10);
+/** 화면이 최신인지 확인용 — 현지 시각 HH:MM */
+export const nowHM = () =>
+  new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
 export const nowIso = () => new Date().toISOString();

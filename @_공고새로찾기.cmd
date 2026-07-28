@@ -20,7 +20,8 @@ echo.
 echo Opening dashboard in your browser...
 start "job-dashboard" /min cmd /c "node scripts\serve.mjs 8787"
 ping -n 3 127.0.0.1 >nul
-start "" "http://localhost:8787/"
+rem 주소 끝 v=... 는 매번 달라져서 브라우저가 옛 화면을 재사용하지 않게 합니다
+start "" "http://localhost:8787/?v=%RANDOM%%TIME:~9,2%"
 echo.
 echo Done. Check your browser. You can close this window.
 ping -n 6 127.0.0.1 >nul
