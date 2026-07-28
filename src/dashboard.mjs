@@ -431,7 +431,7 @@ ${coPanel}
 ${srcFilter}
 <div class="helpbox">
   <p><b class="hl-src">출처</b> — 버튼으로 사이트별로 골라 볼 수 있습니다. <b>기업 직접</b>은 100대 기업·유니콘 공식 채용 홈페이지에서 바로 가져온 공고입니다. <b>리멤버</b>·<b>인스타</b>는 로그인 필요. <b>링크드인</b> 해외 공고는 <b>해외</b> 탭에 있습니다.</p>
-  <p class="mut">출처를 고르면 <b>국내</b>·<b>해외</b> 탭 옆 숫자가 그 출처의 건수로 바뀝니다. 한쪽이 0이면 다른 탭을 눌러 보세요.</p>
+  <p class="mut">출처를 고르면 <b>국내</b>·<b>해외</b> 탭 옆 숫자가 그 출처의 건수로 바뀝니다. <b>탭을 누르면 출처 선택은 풀리고</b> 그 탭의 공고가 전부 나옵니다.</p>
   <p><b class="hl-score">점수</b> — 100점 만점 적합도. <span class="pos">▲ 85점 이상</span> · <span class="amb">◆ 70점 이상</span> · <span class="mut">● 그 외</span></p>
   <p><b class="hl-sal">연봉</b> — 희망 연봉 기준 <span class="pos">▲ 충족</span> / <span class="neg">▼ 미달</span> (표시된 경우만)</p>
 </div>
@@ -517,8 +517,19 @@ document.querySelectorAll('.fb').forEach(function(b){
       .finally(function(){ b.disabled=false; });
   });
 });
+function resetSrcFilter(){
+  document.querySelectorAll('.sf').forEach(function(x){
+    x.classList.remove('active');
+    x.setAttribute('aria-pressed','false');
+  });
+  var all=document.querySelector('.sf.all');
+  if(all){ all.classList.add('active'); all.setAttribute('aria-pressed','true'); }
+}
 document.querySelectorAll('.tab').forEach(function(t){
   t.addEventListener('click', function(){
+    // 탭을 누르면 출처 선택은 초기화 — 그 탭의 공고를 전부 보여 준다
+    resetSrcFilter();
+    applySrcFilter();
     switchTab(t.dataset.t);
     updateEmptyHints();
   });
