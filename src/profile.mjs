@@ -42,7 +42,7 @@ function personalFromEnv() {
   return {
     identity: {
       // 경력 적합도 점수(experienceFit)에 사용
-      experience_years: numEnv("JOB_SEEKER_EXPERIENCE_YEARS", 3),
+      experience_years: numEnv("JOB_SEEKER_EXPERIENCE_YEARS", 5),
     },
     salary: {
       // 연봉 적합도 점수(salaryFit)에 사용

@@ -121,7 +121,7 @@ export function scoreJob(job, profile) {
   }
 
   // 3) 경력 적합
-  const [eScore, eWhy] = experienceFit(job.experience, profile.identity?.experience_years ?? 3);
+  const [eScore, eWhy] = experienceFit(job.experience, profile.identity?.experience_years ?? 5);
   score += eScore;
   reasons.push(eWhy);
 
