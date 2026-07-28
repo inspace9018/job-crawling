@@ -169,7 +169,11 @@ function companySearchPanelHtml(companies = [], note = "", uniNormSet = new Set(
 </details>`;
 }
 
-function sourceFilterHtml(counts, alwaysShow = []) {
+/**
+ * 탭별 출처 필터. scope('dom'|'ovs')마다 그 탭의 공고만으로 건수를 세고 선택도 따로 관리한다.
+ * 하나를 공유하면 국내 탭에서 "링크드인 22"(사실은 전부 해외)처럼 사실과 다른 숫자가 보인다.
+ */
+function sourceFilterHtml(counts, alwaysShow = [], scope = "dom") {
   const keySet = new Set([
     ...Object.keys(counts),
     ...alwaysShow.filter(Boolean),
@@ -190,12 +194,14 @@ function sourceFilterHtml(counts, alwaysShow = []) {
             ? " 이번 결과 0건 — 인스타로그인.cmd 후 공고새로찾기"
             : " 이번 결과 0건"
         : "";
-      return `<button type="button" class="sf${zero ? " zero" : ""}" data-src="${esc(k)}" aria-pressed="false" title="${esc(tip.trim())}">${esc(sourceLabel(k))} <span class="c num">${n}</span></button>`;
+      return `<button type="button" class="sf${zero ? " zero" : ""}" data-scope="${scope}" data-src="${esc(k)}" aria-pressed="false" title="${esc(tip.trim())}">${esc(sourceLabel(k))} <span class="c num">${n}</span></button>`;
     })
     .join("");
-  return `<div class="srcfilt" id="srcfilt" role="group" aria-label="출처 필터">
-  <span class="srcfilt-lbl">출처</span>
-  <button type="button" class="sf all active" data-src="" aria-pressed="true">전체</button>
+  if (!keys.length) return "";
+  const label = scope === "ovs" ? "해외 출처" : "국내 출처";
+  return `<div class="srcfilt${scope === "ovs" ? " hidden" : ""}" id="srcfilt-${scope}" data-scope="${scope}" role="group" aria-label="${label} 필터">
+  <span class="srcfilt-lbl">${label}</span>
+  <button type="button" class="sf all active" data-scope="${scope}" data-src="" aria-pressed="true">전체</button>
   ${chips}
 </div>`;
 }
@@ -270,8 +276,9 @@ export async function renderHtml(ranked, fresh, meta = {}) {
   const allDomestic = ranked.filter((j) => !j.region || j.region === "KR");
   const overseas = allOverseas.slice(0, 60);
   const domestic = allDomestic.slice(0, 120);
-  const srcCounts = sourceCounts(ranked);
-  const srcFilter = sourceFilterHtml(srcCounts, meta.alwaysShowSources || []);
+  // 국내는 켜 둔 수집원을 0건이어도 보여 주고(검색은 했다는 뜻), 해외는 실제로 있는 출처만 보여 준다.
+  const domFilter = sourceFilterHtml(sourceCounts(allDomestic), meta.alwaysShowSources || [], "dom");
+  const ovsFilter = sourceFilterHtml(sourceCounts(allOverseas), [], "ovs");
   const companyList = meta.companySearchList || [];
   const topNormSet = buildTop100NormSet(companyList);
   const uniNormSet = buildTop100NormSet(meta.unicornList || []);
@@ -376,6 +383,8 @@ ${srcColors}
 .cochip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border:1px solid var(--line2);border-radius:var(--rs);background:var(--card);color:var(--fg2);line-height:1.3}
 .cochip .coi{color:var(--dim);font-size:11px}
 .cochip.hidden{display:none}
+/* 탭 전환의 핵심 — 이 규칙이 없어서 국내·해외 패널이 늘 함께 보였고 탭이 안 먹는 것처럼 보였다 */
+.hidden{display:none !important}
 .rsch{margin-top:12px;border-top:1px solid var(--line2);padding-top:10px}
 .rsch>summary{list-style:none;cursor:pointer;font-size:13px;color:var(--mut);font-weight:600;letter-spacing:.01em;line-height:1.4}
 .rsch>summary::-webkit-details-marker{display:none}
@@ -428,10 +437,11 @@ ${coPanel}
   <button class="tab active" data-t="dom">국내 <span class="c">${allDomestic.length}</span></button>
   <button class="tab" data-t="ovs">해외 <span class="c">${allOverseas.length}</span></button>
 </div>
-${srcFilter}
+${domFilter}
+${ovsFilter}
 <div class="helpbox">
   <p><b class="hl-src">출처</b> — 버튼으로 사이트별로 골라 볼 수 있습니다. <b>기업 직접</b>은 100대 기업·유니콘 공식 채용 홈페이지에서 바로 가져온 공고입니다. <b>리멤버</b>·<b>인스타</b>는 로그인 필요. <b>링크드인</b> 해외 공고는 <b>해외</b> 탭에 있습니다.</p>
-  <p class="mut">출처를 고르면 <b>국내</b>·<b>해외</b> 탭 옆 숫자가 그 출처의 건수로 바뀝니다. <b>탭을 누르면 출처 선택은 풀리고</b> 그 탭의 공고가 전부 나옵니다.</p>
+  <p class="mut">출처 버튼은 <b>국내·해외 각각 따로</b>입니다 — 지금 보고 있는 탭의 출처와 건수만 나옵니다. <b>탭을 누르면 그 탭의 출처 선택은 풀리고</b> 공고가 전부 나옵니다.</p>
   <p><b class="hl-score">점수</b> — 100점 만점 적합도. <span class="pos">▲ 85점 이상</span> · <span class="amb">◆ 70점 이상</span> · <span class="mut">● 그 외</span></p>
   <p><b class="hl-sal">연봉</b> — 희망 연봉 기준 <span class="pos">▲ 충족</span> / <span class="neg">▼ 미달</span> (표시된 경우만)</p>
 </div>
@@ -461,13 +471,16 @@ function visibleCount(panelId){
 function switchTab(tabKey){
   document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
   document.querySelectorAll('.panel').forEach(function(x){x.classList.add('hidden')});
+  // 출처 필터도 탭별로 따로 있으므로 해당 탭 것만 보여 준다
+  document.querySelectorAll('.srcfilt[data-scope]').forEach(function(f){
+    f.classList.toggle('hidden', f.dataset.scope!==tabKey);
+  });
   var t=document.querySelector('.tab[data-t="'+tabKey+'"]');
   var p=document.getElementById(tabKey);
   if(t) t.classList.add('active');
   if(p) p.classList.remove('hidden');
 }
 function updateEmptyHints(){
-  var labels={dom:'국내',ovs:'해외'};
   ['dom','ovs'].forEach(function(pid){
     var hint=document.getElementById(pid+'-empty');
     if(!hint) return;
@@ -475,27 +488,22 @@ function updateEmptyHints(){
     var vis=rows.filter(function(r){ return r.style.display!== 'none'; });
     if(rows.length && vis.length===0){
       hint.style.display='';
-      var other=pid==='dom'?'ovs':'dom';
-      var otherLabel=labels[other];
-      var n=visibleCount(other);
-      hint.querySelector('.jmain').innerHTML=
-        '선택한 출처 공고가 <b>'+labels[pid]+'</b> 탭에는 없습니다.'+
-        (n>0 ? ' <b>'+otherLabel+'</b> 탭('+n+'건)을 눌러 보세요.' : ' 다른 출처를 선택해 보세요.');
+      hint.querySelector('.jmain').innerHTML='선택한 출처의 공고가 없습니다. <b>전체</b>를 누르거나 다른 출처를 선택해 보세요.';
     } else {
       hint.style.display='none';
     }
   });
 }
-function applySrcFilter(){
-  var allBtn=document.querySelector('.sf.all');
-  var on=[].slice.call(document.querySelectorAll('.sf.active:not(.all)')).map(function(b){return b.dataset.src;});
+// 탭(scope)마다 자기 출처 버튼만 보고, 자기 패널의 공고만 걸러 낸다.
+function applySrcFilter(scope){
+  var allBtn=document.querySelector('.sf.all[data-scope="'+scope+'"]');
+  var on=[].slice.call(document.querySelectorAll('.sf.active:not(.all)[data-scope="'+scope+'"]'))
+    .map(function(b){return b.dataset.src;});
   var showAll=allBtn&&allBtn.classList.contains('active');
-  document.querySelectorAll('.jrow[data-source]').forEach(function(row){
+  jobRows(scope).forEach(function(row){
     if(showAll||!on.length){ row.style.display=''; return; }
     row.style.display=on.indexOf(row.dataset.source)>=0?'':'none';
   });
-  // 사용자가 고른 탭은 그대로 둔다. 예전에는 선택한 출처가 그 탭에 없으면
-  // 다른 탭으로 자동으로 넘겨버려서, 해외 탭을 눌러도 국내로 튕기는 것처럼 보였다.
   updateTabCounts();
   updateEmptyHints();
 }
@@ -517,39 +525,42 @@ document.querySelectorAll('.fb').forEach(function(b){
       .finally(function(){ b.disabled=false; });
   });
 });
-function resetSrcFilter(){
-  document.querySelectorAll('.sf').forEach(function(x){
+function resetSrcFilter(scope){
+  document.querySelectorAll('.sf[data-scope="'+scope+'"]').forEach(function(x){
     x.classList.remove('active');
     x.setAttribute('aria-pressed','false');
   });
-  var all=document.querySelector('.sf.all');
+  var all=document.querySelector('.sf.all[data-scope="'+scope+'"]');
   if(all){ all.classList.add('active'); all.setAttribute('aria-pressed','true'); }
 }
 document.querySelectorAll('.tab').forEach(function(t){
   t.addEventListener('click', function(){
-    // 탭을 누르면 출처 선택은 초기화 — 그 탭의 공고를 전부 보여 준다
-    resetSrcFilter();
-    applySrcFilter();
-    switchTab(t.dataset.t);
+    var scope=t.dataset.t;
+    // 탭을 누르면 그 탭의 출처 선택을 초기화 — 공고를 전부 보여 준다
+    resetSrcFilter(scope);
+    applySrcFilter(scope);
+    switchTab(scope);
     updateEmptyHints();
   });
 });
 document.querySelectorAll('.sf').forEach(function(b){
   b.addEventListener('click', function(){
+    var scope=b.dataset.scope;
+    var allBtn=document.querySelector('.sf.all[data-scope="'+scope+'"]');
     if(b.classList.contains('all')){
-      document.querySelectorAll('.sf').forEach(function(x){ x.classList.remove('active'); x.setAttribute('aria-pressed','false'); });
+      document.querySelectorAll('.sf[data-scope="'+scope+'"]').forEach(function(x){
+        x.classList.remove('active'); x.setAttribute('aria-pressed','false');
+      });
       b.classList.add('active'); b.setAttribute('aria-pressed','true');
     } else {
-      document.querySelector('.sf.all').classList.remove('active');
-      document.querySelector('.sf.all').setAttribute('aria-pressed','false');
+      if(allBtn){ allBtn.classList.remove('active'); allBtn.setAttribute('aria-pressed','false'); }
       b.classList.toggle('active');
       b.setAttribute('aria-pressed', b.classList.contains('active')?'true':'false');
-      if(!document.querySelector('.sf.active:not(.all)')){
-        document.querySelector('.sf.all').classList.add('active');
-        document.querySelector('.sf.all').setAttribute('aria-pressed','true');
+      if(!document.querySelector('.sf.active:not(.all)[data-scope="'+scope+'"]') && allBtn){
+        allBtn.classList.add('active'); allBtn.setAttribute('aria-pressed','true');
       }
     }
-    applySrcFilter();
+    applySrcFilter(scope);
   });
 });
 var coIn=document.getElementById('coSearch');
