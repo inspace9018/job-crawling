@@ -186,6 +186,7 @@ async function main() {
     sources: sourceLabel,
     salaryMin: profile.salary?.min_manwon,
     companySearchList: companies,
+    unicornList: extraCompanyFiles.flatMap((f) => f?.companies || []),
     companySearchNote: top100._source || top100._README || "",
     alwaysShowSources: dashboardAlwaysShowSources(col),
   });

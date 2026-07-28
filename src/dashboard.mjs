@@ -123,23 +123,46 @@ function isListedCompany(company, topNormSet) {
   if (!topNormSet?.size) return false;
   const n = normCo(company);
   if (!n) return false;
+  if (topNormSet.has(n)) return true;
   for (const t of topNormSet) {
     if (n.includes(t) || t.includes(n)) return true;
   }
   return false;
 }
 
-function companySearchPanelHtml(companies = [], note = "") {
+/** 이름이 정확히 일치할 때만. 부분일치로 '카카오'가 '카카오모빌리티'에 걸리는 것을 막는다. */
+function isExactListed(company, normSet) {
+  const n = normCo(company);
+  return !!n && !!normSet?.has(n);
+}
+
+/** 100대 / 유니콘 중 어디에 속하는지 — 정확 일치를 먼저 보고, 없으면 부분일치로 넘어간다. */
+function listedKind(company, topNormSet, uniNormSet) {
+  if (isExactListed(company, uniNormSet)) return "uni";
+  if (isExactListed(company, topNormSet)) return "top";
+  if (isListedCompany(company, uniNormSet)) return "uni";
+  if (isListedCompany(company, topNormSet)) return "top";
+  return "";
+}
+
+function companySearchPanelHtml(companies = [], note = "", uniNormSet = new Set()) {
   if (!companies.length) return "";
   const chips = companies
-    .map((c, i) => `<span class="cochip" data-name="${esc(c)}"><span class="coi num">${String(i + 1).padStart(2, "0")}</span>${esc(c)}</span>`)
+    .map((c, i) => {
+      const kind = isExactListed(c, uniNormSet) ? "uni" : "top";
+      return `<span class="cochip ${kind}" data-name="${esc(c)}"><span class="coi num">${String(i + 1).padStart(2, "0")}</span>${esc(c)}</span>`;
+    })
     .join("");
   const noteHtml = note ? `<p class="conote mut">${esc(note)}</p>` : "";
+  const uniCount = companies.filter((c) => isExactListed(c, uniNormSet)).length;
+  const label = uniCount
+    ? `100대 기업 + ${uniCount}대 유니콘 검색 목록 (${companies.length}곳)`
+    : `100대 기업 검색 목록 (${companies.length}곳)`;
   return `<details class="co100" id="co100">
-  <summary>100대 기업 검색 목록 (${companies.length}곳) ▾</summary>
+  <summary>${label} ▾</summary>
   <div class="cobody">
     ${noteHtml}
-    <p class="cohint mut">아래 회사는 <strong>공식 채용 홈페이지</strong>에서 디자인 관련 공고를 찾습니다(사람인·잡코리아 회사 검색 아님). 공고 옆 <span class="badge top100">100대</span> 뱃지는 이 목록에 해당하는 회사입니다.</p>
+    <p class="cohint mut">아래 회사는 <strong>공식 채용 홈페이지</strong>에서 디자인 관련 공고를 찾습니다(사람인·잡코리아 회사 검색 아님). 공고 옆 <span class="badge top100">100대</span>·<span class="badge unicorn">유니콘</span> 뱃지는 이 목록에 해당하는 회사입니다.</p>
     <label class="cofilt"><span class="mut">회사명 찾기</span> <input type="search" id="coSearch" placeholder="예: 삼성, LG" autocomplete="off"></label>
     <div class="cogrid" id="cogrid">${chips}</div>
   </div>
@@ -179,7 +202,7 @@ function sourceFilterHtml(counts, alwaysShow = []) {
 
 const SRC = { saramin: "SARAMIN", wanted: "WANTED", linkedin: "LINKEDIN", designrookie: "ROOKIE" };
 
-function jrow(j, rank, min, research, topNormSet) {
+function jrow(j, rank, min, research, topNormSet, uniNormSet = new Set()) {
   const m = scoreMeta(j.score);
   const condParts = [j.experience, j.location, j.etype, j.deadline].filter(Boolean).map(esc);
   const condHtml = condParts.length ? `<span class="jcond">${condParts.join("<span class=\"sep\">·</span>")}</span>` : "";
@@ -188,7 +211,14 @@ function jrow(j, rank, min, research, topNormSet) {
   const isnew = j.is_new ? `<span class="pill on">● NEW</span>` : "";
   const hire = detectHiringType(j);
   const hbadge = `<span class="badge ${hire.label === "대행" ? "agency" : "direct"}">${hire.label}${hire.conf ? "·" + hire.conf : ""}</span>`;
-  const topBadge = isListedCompany(j.company, topNormSet) ? ` <span class="badge top100">100대</span>` : "";
+  // 유니콘 목록에 있으면 '유니콘', 그 외 목록에 있으면 '100대' (유니콘에 100대 뱃지가 붙지 않게)
+  const kind = listedKind(j.company, topNormSet, uniNormSet);
+  const topBadge =
+    kind === "uni"
+      ? ` <span class="badge unicorn">유니콘</span>`
+      : kind === "top"
+        ? ` <span class="badge top100">100대</span>`
+        : "";
 
   // 70점 이상: 회사 리서치 패널
   let panel = "";
@@ -243,7 +273,8 @@ export async function renderHtml(ranked, fresh, meta = {}) {
   const srcFilter = sourceFilterHtml(srcCounts, meta.alwaysShowSources || []);
   const companyList = meta.companySearchList || [];
   const topNormSet = buildTop100NormSet(companyList);
-  const coPanel = companySearchPanelHtml(companyList, meta.companySearchNote || "");
+  const uniNormSet = buildTop100NormSet(meta.unicornList || []);
+  const coPanel = companySearchPanelHtml(companyList, meta.companySearchNote || "", uniNormSet);
   const srcColors = sourceThemeCss();
   const domSourceSet = new Set(allDomestic.map((j) => j.source || ""));
   const ovsOnlySources = [...new Set(allOverseas.map((j) => j.source || ""))].filter((s) => s && !domSourceSet.has(s));
@@ -333,6 +364,7 @@ ${srcColors}
 .badge.direct{color:var(--grn);border-color:#1c5a2e;background:var(--grnb)}
 .badge.agency{color:var(--amber);border-color:#5a4a00;background:rgba(224,162,58,.10)}
 .badge.top100{color:#c4a0ff;border-color:#5a4080;background:rgba(196,160,255,.12)}
+.badge.unicorn{color:#7fd4e8;border-color:#2f5f6e;background:rgba(127,212,232,.12)}
 .co100{margin:20px 0 8px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card2)}
 .co100>summary{list-style:none;cursor:pointer;font-size:14px;font-weight:700;color:var(--fg2);padding:14px 18px;letter-spacing:.01em;line-height:1.4}
 .co100>summary::-webkit-details-marker{display:none}
@@ -390,7 +422,7 @@ footer{color:var(--dim);font-size:12px;margin-top:28px;text-align:center;line-he
   <div class="card kpi"><div class="l">맞는 공고</div><div class="v num">${ranked.length}</div></div>
   <div class="card kpi"><div class="l">새 공고</div><div class="v num ${fresh.length ? "pos" : "mut"}">${fresh.length}</div></div>
   <div class="card kpi"><div class="l">최고 점수</div><div class="v num ${ranked[0] ? scoreMeta(ranked[0].score).cls : "mut"}">${ranked[0]?.score ?? "—"}</div></div>
-  <div class="card kpi"><div class="l">100대 기업 검색</div><div class="v num">${companyList.length || "—"}</div><div class="v src">아래 목록에서 회사명 확인</div></div>
+  <div class="card kpi"><div class="l">${uniNormSet.size ? "100대 기업 + 유니콘" : "100대 기업 검색"}</div><div class="v num">${companyList.length || "—"}</div><div class="v src">아래 목록에서 회사명 확인</div></div>
 </div>
 ${coPanel}
 <div class="tabs">
@@ -405,13 +437,13 @@ ${srcFilter}
 </div>
 <div class="panel" id="dom">
   <div class="card list">
-  ${domestic.map((j, i) => jrow(j, i + 1, min, research, topNormSet)).join("\n")}
+  ${domestic.map((j, i) => jrow(j, i + 1, min, research, topNormSet, uniNormSet)).join("\n")}
   <div class="jrow filt-empty" id="dom-empty" aria-live="polite"><div class="jmain"></div></div>
   </div>
 </div>
 <div class="panel hidden" id="ovs">
   <div class="card list">
-  ${overseas.length ? overseas.map((j, i) => jrow(j, i + 1, min, research, topNormSet)).join("\n") : '<div class="jrow"><div class="jmain mut">해외 공고 없음(다음 수집 때 다시 확인)</div></div>'}
+  ${overseas.length ? overseas.map((j, i) => jrow(j, i + 1, min, research, topNormSet, uniNormSet)).join("\n") : '<div class="jrow"><div class="jmain mut">해외 공고 없음(다음 수집 때 다시 확인)</div></div>'}
   <div class="jrow filt-empty" id="ovs-empty" aria-live="polite"><div class="jmain"></div></div>
   </div>
 </div>

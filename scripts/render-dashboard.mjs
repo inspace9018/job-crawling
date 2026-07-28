@@ -24,6 +24,7 @@ const html = await renderHtml(ranked, fresh, {
   sources: "사람인·원티드·링크드인·디자인루키",
   salaryMin: profile.salary?.min_manwon,
   companySearchList: companies,
+  unicornList: extraCompanyFiles.flatMap((f) => f?.companies || []),
   companySearchNote: top100._source || top100._README || "",
   alwaysShowSources: dashboardAlwaysShowSources(col),
 });
