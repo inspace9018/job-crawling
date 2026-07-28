@@ -35,13 +35,19 @@ const SOURCE_LABELS = {
   remember: "리멤버",
   jumpit: "점프잇",
   designrookie: "디자인루키",
-  corporate_workday: "기업(Workday)",
-  corporate_web: "기업(공식채용)",
-  corporate_greenhouse: "기업(GH)",
-  corporate_lever: "기업(Lever)",
+  corporate: "기업 직접",
   web_search: "웹검색",
   instagram_agency: "인스타",
 };
+
+/**
+ * 수집 경로(Workday·Greenhouse·공식 홈페이지 등)는 사용자에게 의미가 없으므로
+ * 화면에서는 '기업 직접' 하나로 묶는다. 필터 버튼·뱃지 모두 이 묶음 기준.
+ */
+export function srcGroup(source) {
+  const s = String(source || "");
+  return s.startsWith("corporate_") ? "corporate" : s || "unknown";
+}
 
 const SOURCE_ORDER = [
   "saramin",
@@ -54,10 +60,7 @@ const SOURCE_ORDER = [
   "remember",
   "jumpit",
   "designrookie",
-  "corporate_workday",
-  "corporate_web",
-  "corporate_greenhouse",
-  "corporate_lever",
+  "corporate",
   "web_search",
   "instagram_agency",
 ];
@@ -74,10 +77,7 @@ const SOURCE_THEME = {
   remember: { fg: "#ff8ec7", bg: "rgba(255,142,199,.12)", bd: "#804060" },
   jumpit: { fg: "#8eb4ff", bg: "rgba(142,180,255,.12)", bd: "#3a5080" },
   designrookie: { fg: "#ffb07a", bg: "rgba(255,176,122,.12)", bd: "#805030" },
-  corporate_workday: { fg: "#b8b8ff", bg: "rgba(184,184,255,.12)", bd: "#505080" },
-  corporate_web: { fg: "#a8d4ff", bg: "rgba(168,212,255,.1)", bd: "#406080" },
-  corporate_greenhouse: { fg: "#7dcea0", bg: "rgba(125,206,160,.12)", bd: "#2a6040" },
-  corporate_lever: { fg: "#f0a0a0", bg: "rgba(240,160,160,.12)", bd: "#804040" },
+  corporate: { fg: "#b8b8ff", bg: "rgba(184,184,255,.12)", bd: "#505080" },
   web_search: { fg: "#b0b0b0", bg: "rgba(176,176,176,.10)", bd: "#505050" },
   instagram_agency: { fg: "#ff9fd4", bg: "rgba(255,159,212,.12)", bd: "#804868" },
 };
@@ -104,7 +104,7 @@ function sourceLabel(src) {
 function sourceCounts(jobs) {
   const c = {};
   for (const j of jobs) {
-    const s = j.source || "unknown";
+    const s = srcGroup(j.source);
     c[s] = (c[s] || 0) + 1;
   }
   return c;
@@ -233,14 +233,15 @@ function jrow(j, rank, min, research, topNormSet, uniNormSet = new Set()) {
       <div class="rlinks"><a href="${jobplanetUrl(j.company)}" target="_blank" rel="noopener">잡플래닛 평점·리뷰</a> · <a href="${googleUrl(j.company + " 기업")}" target="_blank" rel="noopener">구글 검색</a> · <a href="${esc(j.url)}" target="_blank" rel="noopener">공고 원문</a></div>
     </div></details>`;
   }
-  const srcKey = safeSourceKey(j.source);
-  const srcBadge = `<span class="badge src src-${srcKey}">${esc(sourceLabel(j.source) || SRC[j.source] || esc(j.source || ""))}</span>`;
+  const group = srcGroup(j.source);
+  const srcKey = safeSourceKey(group);
+  const srcBadge = `<span class="badge src src-${srcKey}">${esc(sourceLabel(group) || SRC[j.source] || j.source || "")}</span>`;
   const reasons = (j.reasons || []).filter(Boolean);
   const whyHtml = reasons.length
     ? `<ul class="jwhy">${reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`
     : "";
 
-  return `<div class="jrow" data-id="${esc(j.id)}" data-source="${esc(j.source || "")}" data-co="${esc(j.company || "")}" data-title="${esc(j.title)}">
+  return `<div class="jrow" data-id="${esc(j.id)}" data-source="${esc(group)}" data-co="${esc(j.company || "")}" data-title="${esc(j.title)}">
   <div class="jrank num">${String(rank).padStart(2, "0")}</div>
   <div class="jscore num ${m.cls}" title="적합도 ${j.score}점"><span class="g">${m.g}</span>${j.score}</div>
   <div class="jmain">
@@ -276,8 +277,6 @@ export async function renderHtml(ranked, fresh, meta = {}) {
   const uniNormSet = buildTop100NormSet(meta.unicornList || []);
   const coPanel = companySearchPanelHtml(companyList, meta.companySearchNote || "", uniNormSet);
   const srcColors = sourceThemeCss();
-  const domSourceSet = new Set(allDomestic.map((j) => j.source || ""));
-  const ovsOnlySources = [...new Set(allOverseas.map((j) => j.source || ""))].filter((s) => s && !domSourceSet.has(s));
   const css = `
 :root{
   --bg:#050505;--card:#141414;--card2:#0d0d0d;
@@ -431,7 +430,8 @@ ${coPanel}
 </div>
 ${srcFilter}
 <div class="helpbox">
-  <p><b class="hl-src">출처</b> — 버튼으로 사이트별로 골라 볼 수 있습니다. <b>리멤버</b>는 <b>국내</b> 탭·분홍색 버튼(로그인 필요). <b>인스타</b>는 에이전시 채용 게시(로그인 필요). <b>링크드인</b>은 <b>해외</b> 탭.</p>
+  <p><b class="hl-src">출처</b> — 버튼으로 사이트별로 골라 볼 수 있습니다. <b>기업 직접</b>은 100대 기업·유니콘 공식 채용 홈페이지에서 바로 가져온 공고입니다. <b>리멤버</b>·<b>인스타</b>는 로그인 필요. <b>링크드인</b> 해외 공고는 <b>해외</b> 탭에 있습니다.</p>
+  <p class="mut">출처를 고르면 <b>국내</b>·<b>해외</b> 탭 옆 숫자가 그 출처의 건수로 바뀝니다. 한쪽이 0이면 다른 탭을 눌러 보세요.</p>
   <p><b class="hl-score">점수</b> — 100점 만점 적합도. <span class="pos">▲ 85점 이상</span> · <span class="amb">◆ 70점 이상</span> · <span class="mut">● 그 외</span></p>
   <p><b class="hl-sal">연봉</b> — 희망 연봉 기준 <span class="pos">▲ 충족</span> / <span class="neg">▼ 미달</span> (표시된 경우만)</p>
 </div>
@@ -450,7 +450,6 @@ ${srcFilter}
 <footer>국내 ${allDomestic.length}건 · 해외 ${allOverseas.length}건 · 총 ${ranked.length}건 · ${esc(today())} 생성 · 관심/제외는 다음 공고 찾기부터 점수에 반영됩니다</footer>
 </main>
 <script>
-var OVS_ONLY_SOURCES=${JSON.stringify(ovsOnlySources)};
 function jobRows(panelId){
   var p=document.getElementById(panelId);
   if(!p) return [];
@@ -495,16 +494,16 @@ function applySrcFilter(){
     if(showAll||!on.length){ row.style.display=''; return; }
     row.style.display=on.indexOf(row.dataset.source)>=0?'':'none';
   });
-  if(!showAll&&on.length){
-    var activeTab=document.querySelector('.tab.active');
-    var activeId=activeTab&&activeTab.dataset.t;
-    var cDom=visibleCount('dom');
-    var cOvs=visibleCount('ovs');
-    if(activeId==='dom'&&cDom===0&&cOvs>0) switchTab('ovs');
-    else if(activeId==='ovs'&&cOvs===0&&cDom>0) switchTab('dom');
-    else if(on.length===1&&OVS_ONLY_SOURCES.indexOf(on[0])>=0&&cOvs>0&&cDom===0) switchTab('ovs');
-  }
+  // 사용자가 고른 탭은 그대로 둔다. 예전에는 선택한 출처가 그 탭에 없으면
+  // 다른 탭으로 자동으로 넘겨버려서, 해외 탭을 눌러도 국내로 튕기는 것처럼 보였다.
+  updateTabCounts();
   updateEmptyHints();
+}
+function updateTabCounts(){
+  ['dom','ovs'].forEach(function(pid){
+    var t=document.querySelector('.tab[data-t="'+pid+'"] .c');
+    if(t) t.textContent=visibleCount(pid);
+  });
 }
 document.querySelectorAll('.fb').forEach(function(b){
   b.addEventListener('click', function(){

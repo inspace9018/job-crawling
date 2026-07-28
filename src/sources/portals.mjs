@@ -51,6 +51,8 @@ export function dashboardAlwaysShowSources(col) {
   };
   const ig = col.instagram_agencies || {};
   if (ig.enabled !== false) push("instagram_agency");
+  // 100대 기업·유니콘 공식 채용 홈페이지에서 직접 가져온 공고(수집 경로 무관하게 한 묶음)
+  if (col.use_top100_companies !== false) push("corporate");
   return keys;
 }
 
